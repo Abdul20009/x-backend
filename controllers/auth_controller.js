@@ -26,6 +26,9 @@ const uploadProfilePic = async (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({ msg: "No file uploaded" });
   }
+  console.log('Cloud Name:', process.env.CLOUD_NAME);
+console.log('API Key:', process.env.CLOUD_API_KEY);
+console.log('API Secret:', process.env.CLOUD_API_SECRET);
 
   try {
     const file = req.files.file;

@@ -4,6 +4,8 @@ const dotenv   = require('dotenv');
 const morgan = require('morgan');
 const cors     = require('cors');
 const fileUpload = require('express-fileupload');
+dotenv.config();
+
 const cloudinary = require('cloudinary').v2;
 
 const app = express();
@@ -12,12 +14,11 @@ const authRoutes = require('./routes/auth_routes');
 const userRoutes = require('./routes/user_routes');
 
 cloudinary.config({
-  cloud_name: "drhbsl3bd",
-  api_key: "582239288241383",
-  api_secret: "KG1xBOXgxYw0x0Opqstb5dqnxRI",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
 });
 
-dotenv.config();
 
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 app.use(morgan('combined'));
