@@ -8,29 +8,31 @@ const createPost = async (req, res) => {
     if (!content) {
       return res.status(400).json({ message: "Please fill in all fields" });
     }
-    if (!req.files || !req.files.file) {
-      return res.status(400).json({ msg: "No file uploaded" });
-    }
     try {
+      let imageUrl = null;
+      if (req.files && req.files.file) {
         const file = req.files.file;
-    console.log("Cloudinary API Key:", process.env.CLOUD_API_SECRET);
 
     // Upload the file to Cloudinary
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: "image_posts",
-    });
+    }); 
+    imageUrl = result.secure_url;
+  }
       const post = await Post.create({
         user: req.user.userId,
         content,
-        imageUrl: result.secure_url,
+        imageUrl,
       });
      return res.status(201).json({ post, message: "Post created successfully" });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   }
+
   const toggleLike = async (req, res) => {
-    const post = await Post.findById(req.params.id);
+    try {
+      const post = await Post.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
@@ -48,6 +50,10 @@ const createPost = async (req, res) => {
       message: alreadyLiked ? "Post unliked" : "Post liked",
       likes: post.likes.length,
     });
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+      
+    }
   }
 
   const getAllPosts = async (req, res) => {
@@ -70,48 +76,72 @@ const createPost = async (req, res) => {
 };
 
 const getFeed = async (req, res) => {
-  const posts = await Post.find()
+  try {
+    const posts = await Post.find()
     .populate("user", "username profileImage")
     .sort({ createdAt: -1 });
 
   res.status(200).json(posts);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+    
+  }
 };
 
 const createComment = async (req, res) => {
-  const { postId, text } = req.body;
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    const {text } = req.body;
   const comment = await Comment.create({
     user: req.user.userId,
-    post: postId,
+    post: post._id,
     text,
   });
 
   res.status(201).json(comment);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+    
+  }
 }
 
 const toggleFollow = async (req, res) => {
-  const {userIdFollow} = req.body;
-  const currentUser = await User.findById(req.user.id);
-  const targetUser = await User.findById(userIdFollow);
+  try {
+    const targetUser = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user.userId);
 
-  const isFollowing = currentUser.following.includes(userIdFollow);
+    if (!targetUser) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
-  if(isFollowing) {
-    currentUser.following.pull(userIdFollow);
-    targetUser.followers.pull(req.user.id);
-  }else{
-    currentUser.following.push(userIdFollow);
-    targetUser.followers.push(req.user.id);
+    if (!currentUser) {
+      return res.status(404).json({ msg: "Current user not found" });
+    }
+
+    const isFollowing = currentUser.following.includes(targetUser.id);
+
+    if (isFollowing) {
+      currentUser.following.pull(targetUser.id);
+      targetUser.followers.pull(req.user.userId);
+    } else {
+      currentUser.following.push(targetUser.id);
+      targetUser.followers.push(req.user.userId);
+    }
+
+    await currentUser.save();
+    await targetUser.save();
+
+    res.json({
+      msg: isFollowing ? "Unfollowed" : "Followed",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: error.message });
   }
-
-  await currentUser.save();
-  await targetUser.save();
-
-  res.json({
-    msg: isFollowing ? "Unfollowed" : "Followed",
-  });
-}
-
-
+};
 
   module.exports = {
     createPost,

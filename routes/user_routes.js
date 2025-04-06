@@ -13,10 +13,10 @@ const { authenticateUser } = require("../middleware/authentication");
 
 router.post("/post", authenticateUser, createPost);
 router.get("/getallpost", authenticateUser, getAllPosts);
-router.post("/like", authenticateUser, toggleLike);
+router.post("/:id/like", authenticateUser, toggleLike);
 router.get("/feed", authenticateUser, getFeed);
-router.post("/comment", authenticateUser, createComment);
-router.post("/follow", authenticateUser, toggleFollow);
+router.post("/:id/comment", authenticateUser, createComment);
+router.post("/:id/follow", authenticateUser, toggleFollow);
 
 module.exports = router;
 
