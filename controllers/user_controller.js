@@ -16,11 +16,14 @@ const createPost = async (req, res) => {
     // Upload the file to Cloudinary
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: "image_posts",
-    }); 
+    });
     imageUrl = result.secure_url;
   }
       const post = await Post.create({
         user: req.user.userId,
+        username: req.user.username,
+        email: req.user.email,
+        profilePicture: req.user.profilePicture,
         content,
         imageUrl,
       });
@@ -58,7 +61,7 @@ const createPost = async (req, res) => {
 
   const getAllPosts = async (req, res) => {
     try {
-        const userId = req.user.userId; // Get logged-in user ID
+      //  const userId = req.user.userId; // Get logged-in user ID
 
         // Fetch all posts (Make sure to await)
         let posts = await Post.find();
@@ -94,7 +97,7 @@ const createComment = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    const {text } = req.body;
+    const {content } = req.body;
   const comment = await Comment.create({
     user: req.user.userId,
     post: post._id,
