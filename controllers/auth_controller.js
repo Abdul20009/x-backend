@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary").v2;
 
 const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { name, username, email, password } = req.body;
   try {
     console.log("Received data:", req.body);
     if (!email || !password) {
@@ -15,7 +15,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const user = await User.create({ username, email, password });
+    const user = await User.create({ name, username, email, password });
     res.status(201).json({ user, message: "User created successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -82,6 +82,8 @@ const loginUser = async (req, res) => {
     email: user.email,
     userId: user._id,
     profilePicture: user.profilePicture,
+    followers: user.followers,
+    following: user.following,
   };
 
   const token = jwt.sign(tokenUser, process.env.JWT_SECRET, {

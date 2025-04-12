@@ -19,7 +19,7 @@ const createPost = async (req, res) => {
     });
     imageUrl = result.secure_url;
   }
-      const post = await Post.create({
+      const newPost = new Post({
         user: req.user.userId,
         username: req.user.username,
         email: req.user.email,
@@ -27,18 +27,20 @@ const createPost = async (req, res) => {
         content,
         imageUrl,
       });
-     return res.status(201).json({ post, message: "Post created successfully" });
+      const savedPost = newPost.save();
+     return res.status(201).json({ savedPost, message: "Post created successfully" });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   }
 
-  const toggleLike = async (req, res) => {
+const toggleLike = async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
+    console.log(post);
 
     const alreadyLiked = post.likes.includes(req.user.userId);
 
@@ -59,7 +61,7 @@ const createPost = async (req, res) => {
     }
   }
 
-  const getAllPosts = async (req, res) => {
+const getAllPosts = async (req, res) => {
     try {
       //  const userId = req.user.userId; // Get logged-in user ID
 
